@@ -1,32 +1,67 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
-}
+import fs from 'fs';
+import { request, gql } from 'graphql-request';
+import BigNumber from 'bignumber.js';
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-  name: string,
-  delay: number = Delays.Medium,
-): Promise<string> {
-  return new Promise((resolve: (value?: string) => void) =>
-    setTimeout(() => resolve(`Hello, ${name}`), delay),
-  );
-}
+const main = async () => {
+  const dataPath = './kar_raindrops.json';
+  // const dataPath = './kar1.json';
+  const raindropList = JSON.parse(fs.readFileSync(dataPath).toString());
 
-// Below are examples of using ESLint errors suppression
-// Here it is suppressing a missing return type definition for the greeter function.
+  // 获取所有账户
+  const allAccounts = [];
+  for (const item of raindropList.data.getCampaignTopList) {
+    allAccounts.push(item.account);
+  }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function greeter(name: string) {
-  return await delayedHello(name, Delays.Long);
-}
+  // 对于每一个账户，获得它的收益
+
+  const endpoint = 'https://dapp-api.bifrost.finance/rainbow-pro';
+  const tokenList = ['KAR', 'MOVR', 'SDN', 'PHA', 'BNC'];
+  const precisionList = [10 ** 12, 10 ** 18, 10 ** 18, 10 ** 12, 10 ** 12];
+
+  const allObject = {};
+  for (const token of tokenList) {
+    allObject[token] = {};
+  }
+
+  for (const account of allAccounts) {
+    const query = gql`
+    {
+      getPersonalRewards(
+        account: "${account}"
+      ) {
+        token
+        amount
+      }
+    }
+  `;
+
+    const data = await request(endpoint, query);
+
+    for (const tokenReward of data.getPersonalRewards) {
+      for (let i = 0; i < tokenList.length; i++) {
+        const token = tokenList[i];
+        const precision = precisionList[i];
+        if (tokenReward.token == token) {
+          if (tokenReward.amount > 0) {
+            const amt = BigInt(
+              new BigNumber(tokenReward.amount * precision)
+                .multipliedBy(precision)
+                .toFixed(0),
+            ).toString(16);
+
+            allObject[token][account] = amt;
+          }
+        }
+      }
+    }
+  }
+
+  const keyList = Object.keys(allObject);
+
+  for (const key of keyList) {
+    fs.writeFileSync(`${key}.json`, JSON.stringify(allObject[key]));
+  }
+};
+
+main();
