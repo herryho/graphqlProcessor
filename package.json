@@ -23,6 +23,8 @@
   },
   "scripts": {
     "start": "yarn build && node build/src/main.js",
+    "start-json2entries": "yarn build && node build/src/json2entries.js",
+    "start-convertSS58Format": "yarn build && node build/src/convertSS58Format.js",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",

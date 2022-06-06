@@ -3,7 +3,7 @@ import { request, gql } from 'graphql-request';
 import BigNumber from 'bignumber.js';
 
 const main = async () => {
-  const dataPath = './kar_raindrops.json';
+  const dataPath = './final_raindrops.json';
   // const dataPath = './kar1.json';
   const raindropList = JSON.parse(fs.readFileSync(dataPath).toString());
 
@@ -16,8 +16,11 @@ const main = async () => {
   // 对于每一个账户，获得它的收益
 
   const endpoint = 'https://dapp-api.bifrost.finance/rainbow-pro';
-  const tokenList = ['KAR', 'MOVR', 'SDN', 'PHA', 'BNC'];
-  const precisionList = [10 ** 12, 10 ** 18, 10 ** 18, 10 ** 12, 10 ** 12];
+  // const tokenList = ['KAR', 'MOVR', 'SDN', 'PHA', 'BNC'];
+  // const precisionList = [10 ** 12, 10 ** 18, 10 ** 18, 10 ** 12, 10 ** 12];
+
+  const tokenList = ['SDN'];
+  const precisionList = [10 ** 18];
 
   const allObject = {};
   for (const token of tokenList) {
@@ -45,10 +48,10 @@ const main = async () => {
         if (tokenReward.token == token) {
           if (tokenReward.amount > 0) {
             const amt = BigInt(
-              new BigNumber(tokenReward.amount * precision)
+              new BigNumber(tokenReward.amount)
                 .multipliedBy(precision)
                 .toFixed(0),
-            ).toString(16);
+            ).toString();
 
             allObject[token][account] = amt;
           }
