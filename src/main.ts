@@ -19,8 +19,8 @@ const main = async () => {
   // const tokenList = ['KAR', 'MOVR', 'SDN', 'PHA', 'BNC'];
   // const precisionList = [10 ** 12, 10 ** 18, 10 ** 18, 10 ** 12, 10 ** 12];
 
-  const tokenList = ['SDN'];
-  const precisionList = [10 ** 18];
+  const tokenList = ['BNC'];
+  const precisionList = [10 ** 12];
 
   const allObject = {};
   for (const token of tokenList) {
@@ -45,13 +45,14 @@ const main = async () => {
       for (let i = 0; i < tokenList.length; i++) {
         const token = tokenList[i];
         const precision = precisionList[i];
+
         if (tokenReward.token == token) {
           if (tokenReward.amount > 0) {
             const amt = BigInt(
               new BigNumber(tokenReward.amount)
                 .multipliedBy(precision)
                 .toFixed(0),
-            ).toString();
+            ).toString(16);
 
             allObject[token][account] = amt;
           }
